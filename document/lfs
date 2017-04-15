@@ -1,0 +1,31 @@
+Chapter 1. Linux Filesystem Hierarchy
+-------------------------------------
+1.1  Foreward
+-----
+1. Most UNIX filesystem types have a similar general structure, although the exact details vary quite a bit. The
+central concepts are superblock,inode,data block,directory block, and indirection block.
+The superblock contains information about the filesystem as a whole, such as its size (the exact information here depends on
+the filesystem). 
+An inode contains all information about a file, except its name. 
+The name is stored in the directory, together with the number of the inode. A directory entry consists of a filename 
+and the number of the inode which represents the file. The inode contains the numbers of several data blocks, which are used to
+store the data in the file. There is space only for a few data block numbers in the inode, however, 
+and if more are needed, more space for pointers to the data blocks is allocated dynamically. These dynamically allocated
+blocks are indirect blocks; the name indicates that in order to find the data block, one has to find its number in
+the indirect block first.
+
+2. /usr/share/doc/[program−name] -> Programs documentation file 
+3. /usr/share/man/man[1−9] ->man(ual) pages 
+4./usr/share/info -> info pages
+
+5."Shareable" files are defined as those that can be stored on one host and
+ used on others.
+6 ."Unshareable" files are those that are not shareable. 
+   For example, the files in user home directories are shareable whereas device lock files are not. 
+
+7."Static" files include binaries, libraries,documentation files and other files that do not change without system administrator intervention. 
+8. "Variable"  are not static file .
+9. ctrl−alt−del -> a shortcut to properly shutdown the  linux system to keep all the file safe.
+10. there was no clear distinction between /bin and /usr/bin
+ 
+ 
