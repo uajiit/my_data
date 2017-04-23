@@ -1,0 +1,3 @@
+1.export DISPLAY :=0 ccsm
+2. dconf reset -f /org/compiz/
+3. setsid unity

@@ -1,0 +1,21 @@
+modprobe
+---------
+*It is a program that intelligently load and remove modules from the system.
+ modprobe looks in the module directory “lib/modules/$(KERNEL_RELEASE)/” for the modules and load them according to the rules defined  directory /etc/modprobe.d.
+* In earlier distros, modprobe.conf was used instead.
+
+*While loading a specific module via modprobe, modprobe will also load all the dependent modules of a given module.
+ The list of modules and its dependent modules is stored in modules.dep file.
+
+*One can check the list of loaded modules using “lsmod” command
+
+What is depmod
+---------------
+*depmod is a program that generates modules.dep and map files.
+ module.dep is a database of modprobe. It helps modprobe to know a list of dependent modules, while modprobe is loading a speciic  
+ module.
+
+*Incase we have written a some new modules, to add new modules in the database (modules.dep file), we need to run following command
+ $ depmod -a.
+*Generally depmod is executed internally when we install the modules in “lib/modules/$(KERNEL_RELEASE)/” directory by issuing “make  
+ modules_install”.

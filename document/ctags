@@ -1,0 +1,30 @@
+                                                         Ctags
+                                                       ..........
+Introduction
+-------------
+Ctags is a tool that makes it easy to navigate large source code projects. It provides some of the features that you may be used to using in Eclipse or other IDEs, such as the ability to jump from the current source file to definitions of functions and structures in other files. Ctags will make it much easier to find the Linux kernel files that you have to modify for your  projects. Ctags also supports many languages besides C, so you may find it useful for future projects.
+
+Ctags with Vim
+---------------
+
+1.cd to the root directory of your Linux kernel code:
+cd /KM_GIT/linux-<version no>/
+2. Run Ctags recursively over the entire kernel to generate the tags file for the Linux 2.6.13, this should only take a minute or so:
+
+ make tags or ctags -R *
+Note: You may see messages like "Warning: cannot open source file '...' : Permission denied" while ctags is building the tags
+file.These warnings can be ignored.
+3. To search for a specific tag and open Vim to its definition, run the following command in your shell:
+   vim -t <tag>
+4. Or, open any Linux source file in Vim and use the following basic
+  commands:
+
+Keyboard command          Action 
+ Ctrl-]               Jump to the tag underneath the cursor
+:ts <tag> <RET>       Search for a particular tag
+:tn                   Go to the next definition for the last tag
+:tp                   Go to the previous definition for the last tag
+:ts                   List all of the definitions of the last tag
+Ctrl-t                Jump back up in the tag stack
+
+The first command is probably the one you will use most often: it jumps to the definition of the tag (function name, structure name, variable name, or pretty much anything) under the cursor. The second command can be used to search for any tag, regardless of the file that is currently opened. If there are multiple definitions/uses for a particular tag, the tn and tp commands can be used to scroll through them, and the ts command can be used to "search" a list for the definition you want (useful when there are dozens or hundreds of definitions for some commonly-used struct). Finally, the last command is used to jump back up in the tag stack to the location you initiated the previous tag search from.
