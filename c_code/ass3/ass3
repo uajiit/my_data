@@ -1,0 +1,44 @@
+     WAP Producer thread and consumer thread synchronization using Pthreads without synchronization mechanisums?
+    2. WAP Producer thread and consumer thread synchronization using Pthreads and Semaphores?
+    3. WAP Producer thread and consumer thread synchronization using Pthreads, Semaphores and Mutex?
+    4. WAP Producer thread and consumer thread synchronization using Pthreads and Signals?
+
+    Producer Thread synchronization flow:
+
+        Initialize producer signal handler.
+        use signal() system call.
+        Producer start produce the data Until the buffer is FULL.
+        use while() loop until Buffer is FULL.
+        Whenever buffer is FULL raise a signal to consumer thread.
+        use tkill() system call (or) pthread_kill library to raise a signal to consumer thread.
+        Waiting for a signal from consumer thread.
+        use pause() system call  wait for a signal from  consumer thread.
+        Whenever signal received from consumer thread, Enter step 2.
+
+    Consumer Thread synchronization flow:
+
+        Initialize consumer signal handler & Wait for a Signal.
+        use signal() system call for signal handler initialization and pause() system call wait for signal.
+        Whenever signal received from producer thread, start read the buffer until buffer is empty.
+        use while() loop read Buffer until Buffer is EMPTY.
+        Whenever the buffer is EMPTY, Consumer raise a signal to producer thread.
+        use tkill() system call (or) pthread_kill library to raise a signal to producer thread.
+        Waiting for a signal from producer thread.
+        use pause() system call  wait for a signal from  producer thread.
+        Whenever signal received from producer thread, Enter step 2.
+
+Process Synchronization
+
+Related process comm: [Fork]
+
+    5. WAP producer process and consumer process synchronization using Shared Memory, fork() and signals.
+    6. WAP producer process and consumer process synchronization using Shared Memory, fork() and named semaphores.
+
+unrelated process comm [Exec]
+
+    7. WAP producer process and consumer process synchronization using Shared Memory, exec() & Signals.
+
+Without fork() & exec()
+
+    8. Write a separate program for producer.c and consumer.c using Shared Memory, named semaphores without using fork() and exec() system calls.
+

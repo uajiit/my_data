@@ -1,0 +1,239 @@
+#include <stdio.h>
+#include <conio.h>
+#include "valid.c"struct purch_detail
+{
+  char item_desc[20];
+  int unit_price;
+  int qty;
+};
+
+  void display();
+  void entryData();
+  void readFile();
+  void getName(char *str);
+  void getWriteFileName(char *);
+  void getReadFileName(char *);
+  void getzeroInteger(char *_chr, int *_value);
+
+  int count=0;
+  int total_price=0;
+  int total_amt=0;
+  char option;
+  char filename [14];
+  FILE *fp;
+  struct purch_detail *pd_ptr, *tmptr;
+
+  void main()
+  {
+      clrscr();
+      pd_ptr = (struct purch_detail *) malloc(sizeof(struct purch_detail) * 10);
+      tmptr = pd_ptr;
+
+    printf("\nDo you want to create the data file type 'y' for yes and 'n' for no.");
+    scanf("%c", &option);
+    fflush(NULL);
+
+      if( option == 'y' || option == 'Y')
+      {    printf("\nYou can generate bill of maximum 10 item.\n");
+       getWriteFileName(filename);
+       display();
+      }
+      elseif( option == 'n' || option == 'N')
+       {   getReadFileName(filename);
+       readFile();
+       }
+
+
+      getch();
+  }
+
+  void entryData()
+  {
+     while(1)
+     {
+      printf("\nEnter item name : ");
+      getName(tmptr->item_desc);
+
+      getPosInteger("Enter unit price of the item : ", &tmptr->unit_price);
+      getzeroInteger("Enter no of qty purchased : ", &tmptr->qty);
+
+      if(tmptr->qty == 0)
+        break;
+
+      count ++;
+      if (count >= 10)
+         break;
+     /* if ( count % 2 == 0)
+       if ( (pd_ptr = (struct purch_detail *) realloc(pd_ptr, sizeof(struct purch_detail) * 2)) == NULL)
+       {  printf("Realloc failed. No enough memory available.");
+          break;
+       }
+       */
+
+      tmptr++;
+     }
+  }
+
+  void display()
+  {
+     tmptr = pd_ptr;
+
+     fprintf(fp,"\nItem                 Unit Price Quantity  Total Price ");
+     fprintf(fp,"\n______________________________________________________");
+
+     printf("\nItem                 Unit Price Quantity  Total Price ");
+     printf("\n______________________________________________________");
+     while(1)
+     {
+    total_price = tmptr->unit_price * tmptr->qty ;
+    fprintf(fp, "\n%-20s      %4d    %4d     %5d", tmptr->item_desc, tmptr->unit_price, tmptr->qty, total_price);
+    printf("\n%-20s      %4d    %4d     %5d", tmptr->item_desc, tmptr->unit_price, tmptr->qty, total_price);
+    //printf("");
+    total_amt += total_price;
+
+    count--;
+       if ( count <= 0)
+        break;
+      tmptr++;
+     }
+
+     fprintf(fp, "\n______________________________________________________");
+     fprintf(fp, "\n\t\t\t    Total Amount : %5d", total_amt);
+     printf("\n______________________________________________________");
+     printf("\n\t\t\t    Total Amount : %5d", total_amt);
+  }
+
+   void getWriteFileName(char *fname)
+   {
+     printf("Enter Output File name maxium 14 character : ");
+     scanf("%s", fname);
+
+     if( ( fp = fopen(fname, "wt") ) == NULL  )
+     {  fclose(fp);
+    printf("\nInvalid file name entered.");
+     }
+     else
+    entryData();
+  }
+
+   void getReadFileName(char *fname)
+   {
+     printf("Enter Input File name maxium 14 character : ");
+     scanf("%s", fname);
+
+     if( ( fp = fopen(fname, "r+t") ) == NULL  )
+     {  fclose(fp);
+    printf("\nInvalid file name entered.");
+     }
+   }
+
+   void readFile()
+   {
+     char chr;
+     while( feof(fp) == 0)
+     {
+     chr = getc(fp);
+     printf("%c",chr);
+     }
+   }
+    void getName(char *str)
+    {
+    int count1=0;
+    char *getstr;
+    char readch='\0';
+    int errorflag = 0;
+
+       fflush(NULL);
+       getstr = str;
+
+       while(1)
+       {
+        scanf("%c", &readch);
+        if( readch == '\n')
+           break;
+
+        *getstr = readch;
+
+        count1++;
+        getstr++;
+        if( count1 >= 20 )
+          break;
+       }
+       fflush(NULL);
+
+       if(errorflag)
+          getName(str);
+
+       *getstr='\0';
+    }
+
+ void getzeroInteger(char *_chr, int *_value)
+ {
+   float tempval =1;
+   int _ival=0;
+
+    printf("\n%s", _chr);
+    _scaint = scanf("%f", &tempval);
+    fflush(NULL);
+
+
+   if ( _scaint != 0 )
+   {
+     _ival = tempval;
+
+     if ( tempval < 0 )
+     {
+      printf("%s", "\nYou should enter value greater then or equal to zero. Enter the value again...");
+      getzeroInteger(_chr, _value);
+     }
+
+     elseif ( _ival != tempval)
+     {
+      printf("%s", "\nError(decimal value). It will be truncated the digit after the percision. Enter integer number only.");
+      getzeroInteger(_chr, _value);
+     }
+     elseif( ! ( (tempval >= -32768 ) && (tempval <= 32767 )  ) )
+     {
+      printf("%s", "\nError out of range entry. You should enter integer value in the range of -32768 to 327678 only.");
+      getzeroInteger(_chr, _value);
+     }
+     else
+     {
+      *_value = (int) tempval;
+     }
+
+  }
+  else
+     {
+    printf("\n%s","Error in entry. Enter integers only.");
+    getzeroInteger(_chr, _value);
+     }
+ }
+
+    /***************************   Input  *******************************
+
+
+    Do you want to create the data file type 'y' for yes and 'n' for no.y
+
+
+    You can generate bill of maximum 10 item.
+    Enter Output File name maxium 14 character : output.txt
+
+    Enter item name : soap
+
+    Enter unit price of the item : 12
+
+    Enter no of qty purchased : 3
+
+    ***********************************************************************/
+/********************************   OutPut ******************************
+
+    Item                 Unit Price Quantity  Total Price
+    ______________________________________________________
+    soap                        15       3        45
+    Coco Cola                   35       5       175
+    Cadbury                     40       3       120
+    ______________________________________________________
+                    Total Amount :   340
+
+    ************************************************************************/

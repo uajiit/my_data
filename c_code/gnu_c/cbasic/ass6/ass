@@ -1,0 +1,56 @@
+
+KM22:
+----
+Title: C - strings & Commandline Arguments
+----------------------------
+Due Date: 22nd Apr 2017
+```
+
+* [ ] Implement your own versions of the below functions :
+
+1. Strlen – string length
+
+2. Strrev – string reverse
+
+3. Strcat – string concatenation
+
+4. Strcmp – string comparison
+
+5. Strlwr – string lower
+
+6. Strupr – string upper
+
+7. Strcpy – string copy
+
+* [ ] 2) Write a function that would sort a string in alphabetical order.
+
+* [ ] 3 )Write a function that would sort a list of names in alphabetical order.
+
+* [ ] 4 ) Take a string as an input, and count the number of words in the string.
+
+* [ ] 5 )Write a function that reads a string as input, and determines whether the string is a palindrome or not.
+
+* [ ] 6 ) Write a function to replace a given character by another character in a string.
+
+* [ ] 7 )Write a function to replace a given word(of size n) by another word(of same size n) in a given string.
+
+* [ ] 8 ) Write a trim() function,that will remove the leading and trailing spaces from a string.
+
+* [ ] 9) WAP to display the word expansion of a number
+eg., Input : 789
+Output : Seven Eight Nine
+
+* [ ] 10) WAP to convert an integer to string datatype (Own implementation of itoa function)
+eg., Input :56 (Should be taken using scanf %d)
+Output : 56 (Should be printed using %s)
+
+* [ ] 11)WAP to convert a string to integer type(Own implementation of atoi function)
+eg., Input: 47 (Should be taken using scanf %s)
+Output :100: 47 (Should be printed using %d).
+
+
+* [ ] 12) Rewrite the calculator program to receive the arguments at command prompt and give appropriate output.
+```
+
+
+
