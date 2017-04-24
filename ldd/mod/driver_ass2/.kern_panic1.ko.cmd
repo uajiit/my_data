@@ -1,0 +1,1 @@
+cmd_/home/ajit/KM_GIT/ajit_github/ldd/mod/driver_ass2/kern_panic1.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds --build-id  -o /home/ajit/KM_GIT/ajit_github/ldd/mod/driver_ass2/kern_panic1.ko /home/ajit/KM_GIT/ajit_github/ldd/mod/driver_ass2/kern_panic1.o /home/ajit/KM_GIT/ajit_github/ldd/mod/driver_ass2/kern_panic1.mod.o
