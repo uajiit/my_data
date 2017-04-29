@@ -1,0 +1,610 @@
+
+type define
+============
+
+typedef int x; // we can use x insthead of int
+x a=4;  
+----------------------------------------------------------------------
+struct abc
+{
+int x;
+iny y
+};
+typedef struct abc xyz;//  we can use xyz insthead of  type struct abc
+or 
+typedef struct abc
+{
+int x;
+int y;
+
+
+}xyz;// xyz is used insthead  of struct abc. here,it is not variable but it a data type
+
+
+
+----------------------------------------------------------------------
+typedef struct abc xyz;
+struct abc 
+{
+int x;
+int y;
+};
+or 
+
+xyz
+{
+int x;
+int y;
+}
+
+xyz fun(); // return type of fun() is  struct abc  
+---------------------------------------------------------------------------
+typedef struct {
+int x;
+char y;
+
+} xyz;
+ 
+xyz xyz1;
+xyz1.x, xyz1.y;
+-------------------------------------------------------------------------
+
+
+ASCII versus Wide Characters
+============================
+Modern programming requires that wchar strings be supported in an easy way, 
+for internationalization of the programs.
+
+The C Way
+---------
+C uses the wchar_t and the L prefix on strings:
+
+#include <wchar.h>
+char foo_ascii[] = "hello";
+wchar_t foo_wchar[] = L"hello";
+
+Things get worse if code is written to be both ascii and wchar compatible. 
+A macro is used to switch strings from ascii to wchar:
+
+#include <tchar.h>
+tchar string[] = TEXT("hello");
+
+Furthermore, in praxis wchar_t is not usable in portable code as 
+its size is implementation dependent. On POSIX conforming machines it 
+generally represents an UTF-32 codeunit, on Windows an UTF-16 codeunit. 
+C11 introduced C++11 types char16_t and char32_t to overcome this issue. 
+
+
+Arrays that parallel an enum
+============================
+The C Way
+---------
+
+Consider:
+enum COLORS { red, blue, green, max };
+char *cstring[max] = {"red", "blue", "green" };
+char *cstring[max] = {[red]="red", [blue]="blue", [green]="green" };  /* C99 */
+
+This is fairly easy to get right because the number of entries is small. 
+But suppose it gets to be fairly large. Then it can get difficult to maintain 
+correctly when new entries are added. C99 added designated initializers 
+to solve that problem. 
+
+
+Creating a new type with typedef
+================================
+The C Way
+---------
+Typedefs in C are weak, that is, they really do not introduce a new type. 
+The compiler doesn't distinguish between a typedef and its underlying type.
+
+typedef void *Handle;
+void foo(void *);
+void bar(Handle);
+
+Handle h;
+foo(h);         // coding bug not caught
+bar(h);         // ok
+
+The C solution is to create a dummy struct whose sole purpose is to get type 
+checking and overloading on the new type.
+
+struct Handle__ { void *value; }
+typedef struct Handle__ *Handle;
+void foo(void *);
+void bar(Handle);
+
+Handle h;
+foo(h);         // syntax error
+bar(h);         // ok
+
+Having a default value for the type involves defining a macro, a naming 
+convention, and then pedantically following that convention:
+
+#define HANDLE_INIT ((Handle)-1)
+
+Handle h = HANDLE_INIT;
+h = func();
+if (h != HANDLE_INIT)
+    ...
+
+For the struct solution, things get even more complex:
+
+struct Handle__ HANDLE_INIT;
+
+void init_handle(void)  // call this function upon startup
+{
+    HANDLE_INIT.value = (void *)-1;
+}
+
+Handle h = HANDLE_INIT;
+h = func();
+if (memcmp(&h,&HANDLE_INIT,sizeof(Handle)) != 0)
+    ...
+
+There are 4 names to remember: Handle, HANDLE_INIT, 
+struct Handle__, value.
+
+Comparing structs
+=================
+The C Way
+---------
+While C defines struct assignment in a simple, convenient manner:
+
+struct A x, y;
+...
+x = y;
+
+it does not for struct comparisons. Hence, to compare two struct 
+instances for equality:
+
+#include <string.h>
+
+struct A x, y;
+...
+if (memcmp(&x, &y, sizeof(struct A)) == 0)
+    ...
+
+Note the obtuseness of this, coupled with the lack of any kind of 
+help from the language with type checking.
+
+There's a nasty bug lurking in the memcmp(). The layout of a struct, due to 
+alignment, can have 'holes' in it. C does not guarantee those holes are 
+assigned any values, and so two different struct instances can have the same 
+value for each member, but compare different because the holes contain 
+different garbage.
+
+Sorting arrays
+==============
+The C Way
+---------
+Although many C programmers tend to reimplmement bubble sorts over 
+and over, the right way to sort in C is to use qsort():
+
+int compare(const void *p1, const void *p2)
+{
+    type *t1 = (type *)p1;
+    type *t2 = (type *)p2;
+
+    return *t1 - *t2;
+}
+
+type array[10];
+...
+qsort(array, sizeof(array)/sizeof(array[0]),
+	sizeof(array[0]), compare);
+
+A compare() must be written for each type, and much careful 
+typo-prone code needs to be written to make it work. The indirect 
+function call required for each comparison limits the achievable 
+performance of the qsort() routine. 
+
+
+Data Structure Traversal
+========================
+The C Way
+---------
+
+Consider a function to traverse a recursive data structure. In this example, 
+there's a simple symbol table of strings. The data structure is an array of 
+binary trees. The code needs to do an exhaustive search of it to find a 
+particular string in it, and determine if it is a unique instance.
+
+To make this work, a helper function membersearchx is needed to recursively 
+walk the trees. The helper function needs to read and write some context 
+outside of the trees, so a custom struct Paramblock is created and a 
+pointer to it is used to maximize efficiency.
+
+struct Symbol
+{
+    char *id;
+    struct Symbol *left;
+    struct Symbol *right;
+};
+
+struct Paramblock
+{
+    char *id;
+    struct Symbol *sm;
+};
+
+static void membersearchx(struct Paramblock *p, struct Symbol *s)
+{
+    while (s)
+    {
+        if (strcmp(p->id,s->id) == 0)
+        {
+            if (p->sm)
+                error("ambiguous member %s\n",p->id);
+            p->sm = s;
+        }
+
+        if (s->left)
+            membersearchx(p,s->left);
+        s = s->right;
+    }
+}
+
+struct Symbol *symbol_membersearch(Symbol *table[], int tablemax, char *id)
+{
+    struct Paramblock pb;
+    int i;
+
+    pb.id = id;
+    pb.sm = NULL;
+    for (i = 0; i < tablemax; i++)
+    {
+        membersearchx(pb, table[i]);
+    }
+    return pb.sm;
+}
+
+
+Unsigned Right Shift
+====================
+The C Way
+---------
+The right shift operators >> and >>= are signed shifts if the left operand is a 
+signed integral type, and are unsigned right shifts if the left operand is an 
+unsigned integral type. To produce an unsigned right shift on an int, a cast 
+is necessary:
+
+int i, j;
+...
+j = (unsigned)i >> 3;
+
+If i is an int, this works fine. But if i is of a type created with typedef,
+
+myint i, j;
+...
+j = (unsigned)i >> 3;
+
+and myint happens to be a long int, then the cast to unsigned will silently 
+throw away the most significant bits, corrupting the answer. 
+
+Dynamic Closures
+================
+The C Way
+---------
+Consider a reusable container type. In order to be reusable, it must support 
+a way to apply arbitrary code to each element of the container. This is done 
+by creating an apply function that accepts a function pointer to which is 
+passed each element of the container contents.
+
+A generic context pointer is also needed, represented here by void *p. The 
+example here is of a trivial container class that holds an array of ints, 
+and a user of that container that computes the maximum of those ints.
+
+void apply(void *p, int *array, int dim, void (*fp)(void *, int))
+{
+    for (int i = 0; i < dim; i++)
+        fp(p, array[i]);
+}
+
+struct Collection
+{
+    int array[10];
+};
+
+void comp_max(void *p, int i)
+{
+    int *pmax = (int *)p;
+
+    if (i > *pmax)
+        *pmax = i;
+}
+
+void func(struct Collection *c)
+{
+    int max = INT_MIN;
+
+    apply(&max, c->array, sizeof(c->array)/sizeof(c->array[0]), comp_max);
+}
+
+While this works, it isn't very flexible.
+
+Variadic Function Parameters
+============================
+The task is to write a function that takes a varying number of arguments, 
+such as a function that sums its arguments.
+The C Way
+---------
+
+#include <stdio.h>
+#include <stdarg.h>
+
+int sum(int dim, ...)
+{
+    int i;
+    int s = 0;
+    va_list ap;
+
+    va_start(ap, dim);
+    for (i = 0; i < dim; i++)
+        s += va_arg(ap, int);
+    va_end(ap);
+    return s;
+}
+
+int main()
+{
+    int i;
+
+    i = sum(3, 8,7,6);
+    printf("sum = %d\n", i);
+
+    return 0;
+}
+
+There are two problems with this. The first is that the sum function needs 
+to know how many arguments were supplied. It has to be explicitly written, and 
+it can get out of sync with respect to the actual number of arguments written. 
+The second is that there's no way to check that the types of the arguments 
+provided really were ints, and not doubles, strings, structs, etc. 
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+C – Structure Padding
+=======================
+* In order to align the data in memory, one or more empty bytes (addresses) are 
+  inserted (or left empty) between memory addresses   which are allocated for other 
+  structure members while memory allocation. This concept is called structure padding. 
+* Architecture of a computer processor is such a way that it can read 1 word (4 byte in 32 bit processor) 
+  from memory at a time. 
+* To make use of this advantage of processor, data are always aligned as 4 bytes package which leads 
+  to insert empty addresses between other member’s address. 
+* Because of this structure padding concept in C, size of the structure is always not same as what we think. 
+* For example, please consider below structure that has 5 members.
+     struct student
+        {
+          int id1;
+          int id2;
+          char a;
+          char b;
+          float percentage;
+        };
+ * As per C concepts, int and float datatypes occupy 4 bytes each and char datatype occupies 
+   1 byte for 32 bit processor. So, only 14 bytes (4+4+1+1+4) should be allocated for above structure. 
+ * But, this is wrong. Do you know why? 
+ * Architecture of a computer processor is such a way that it can read 1 word from memory at a time. 
+   1 word is equal to 4 bytes for 32 bit processor and 8 bytes for 64 bit processor. So, 32 bit processor 
+   always reads 4 bytes at a time and 64 bit processor always reads 8 bytes at a time. 
+ * This concept is very useful to increase the processor speed. 
+ * To make use of this advantage, memory is arranged as a group of 4 bytes in 32 bit processor 
+   and 8 bytes in 64 bit processor. 
+ * Below C program is compiled and executed in 32 bit compiler. Please check memory allocated 
+   for structure1 and structure2 in below program. 
+
+Example program for structure padding in C language
+---------------------------------------------------
+  #include <stdio.h>
+  #include <string.h>
+ 
+/*  Below structure1 and structure2 are same. 
+    They differ only in member's allignment */
+ 
+struct structure1 
+{
+       int id1;
+       int id2;
+       char n;
+       char c;
+       float percentage;
+};
+ 
+struct structure2 
+{
+       int id1;
+       char n;
+       int id2;
+       char c;
+       float percentage;                      
+};
+ 
+int main() 
+{
+    struct structure1 a;
+    struct structure2 b;
+ 
+    printf("size of structure1 in bytes : %d\n", sizeof(a));
+    printf ( "\n   Address of id1        = %u", &a.id1 );
+    printf ( "\n   Address of id2        = %u", &a.id2 );
+    printf ( "\n   Address of n       = %u", &a.n );
+    printf ( "\n   Address of c          = %u", &a.c );
+    printf ( "\n   Address of percentage = %u",&a.percentage );
+ 
+    printf("   \n\nsize of structure2 in bytes : %d\n",sizeof(b));
+    printf ( "\n   Address of id1        = %u", &b.id1 );
+    printf ( "\n   Address of n       = %u", &b.n );
+    printf ( "\n   Address of id2        = %u", &b.id2 );
+    printf ( "\n   Address of c          = %u", &b.c );
+    printf ( "\n   Address of percentage = %u",&b.percentage );
+    
+    return 0;
+}
+
+Output:
+-------
+size of structure1 in bytes : 16
+Address of id1 = 1297339856
+Address of id2 = 1297339860
+Address of n = 1297339864
+Address of c = 1297339865
+Address of percentage = 1297339868
+size of structure2 in bytes : 20
+Address of id1 = 1297339824
+Address of n = 1297339828
+Address of id2 = 1297339832
+Address of c = 1297339836
+Address of percentage = 1297339840
+
+Structure padding analysis for above C program:
+-----------------------------------------------
+Memory allocation for structure1:
+________________________________
+
+                                    
+   id1     id2    n c   empty percentage             
+<------><-------><-><-><-----><------->                                
+---------------------------------------
+|       |        |  |  |\\\\\|        |       
+|       |        |  |  |\\\\\|        | 
+|       |        |  |  |\\\\\|        |
+---------------------------------------                
+<------> <-------><-><-><----><------->
+   4B      4B     1B 1B   2B      4B
+
+* In above program, memory for structure1 is allocated sequentially for first 4 members.
+* Whereas, memory for 5th member “percentage” is not allocated immediate next to the end of member “c”.
+* There are only 2 bytes remaining in the package of 4 bytes after memory allocated to member “c”.
+* Range of this 4 byte package is from 1297339864 to 1297339867.
+* Addresses 1297339864  and 1297339865 are used for members “name and c”. Addresses 1297339866  
+  and 1297339867 only is available in this package. But, member “percentage” is datatype of 
+  float and requires 4 bytes. It can’t be stored in the same memory package as it requires 4 bytes. 
+  Only 2 bytes are free in that package.
+* So, next 4 byte of memory package is chosen to store percentage data which is from 1297339868 to 1297339871.
+* Because of this, memory 1297339866 and 1297339867 are not used by the program and those 2 bytes are left empty.
+* So, size of structure1 is 16 bytes which is 2 bytes extra than what we think. Because, 2 bytes are left empty.
+
+Memory allocation for structure2:
+________________________________
+
+                                    
+   id1    n  empty  id2    c  empty percentage      
+<-------><-><----><------><-><----><------->                                       
+--------------------------------------------
+|       |  |\\\\\|       |  |\\\\\|        |       
+|       |  |\\\\\|       |  |\\\\\|        | 
+|       |  |\\\\\|       |  |\\\\\|        |
+--------------------------------------------                
+<------><--><----><------><-><----><------->
+   4B    1B  3B      4B    1B  3B        4B
+
+* Memory for structure2 is also allocated as same as above concept. 
+  Please note that structure1 and structure2 are same. But,  they     
+  differ only in the order of the members declared inside the structure.
+* 4 bytes of memory is allocated for 1st structure member “id1” which occupies 
+  whole 4 byte of memory package.
+* Then, 2nd structure member “name” occupies only 1 byte of memory in next 4 
+  byte package and remaining 3 bytes are left empty. Because, 3rd structure member 
+  “id2” of datatype integer requires whole 4 byte of memory in the package. But, 
+  this is not possible as only 3 bytes available in the package.
+* So, next whole 4 byte package is used for structure member “id2”.
+* Again, 4th structure member “c” occupies only 1 byte of memory in next 4 byte 
+  package and remaining 3 bytes are left empty.
+* Because, 5th structure member “percentage” of datatype float requires 
+  whole 4 byte of memory in the package.
+* But, this is also not possible as only 3 bytes available in the package. 
+  So, next whole 4 byte package is used for structure member “percentage”.
+* So, size of structure2 is 20 bytes which is 6 bytes extra than what we think. Because, 6 bytes are left empty.
+
+How to avoid structure padding in C language?
+---------------------------------------------
+
+* #pragma pack ( 1 ) directive can be used for arranging memory for structure
+   members very next to the end of other structure members.
+*  VC++ supports this feature. But, some compilers such as 
+   Turbo C/C++ does not support this feature.
+   Please check the below program where there will be no addresses (bytes) 
+   left empty because of structure padding.
+
+Example program to avoid structure padding in C:
+------------------------------------------------
+
+#include <stdio.h>
+#include <string.h>
+ 
+/*  Below structure1 and structure2 are same. 
+    They differ only in member's allignment */
+ 
+#pragma pack(1)
+struct structure1 
+{
+       int id1;
+       int id2;
+       char name;
+       char c;
+       float percentage;
+};
+ 
+struct structure2 
+{
+       int id1;
+       char name;
+       int id2;
+       char c;
+       float percentage;                      
+};
+ 
+int main() 
+{
+    struct structure1 a;
+    struct structure2 b;
+ 
+    printf("size of structure1 in bytes : %d\n",sizeof(a));
+    printf ( "\n   Address of id1        = %u", &a.id1 );
+    printf ( "\n   Address of id2        = %u", &a.id2 );
+    printf ( "\n   Address of n       = %u", &a.n );
+    printf ( "\n   Address of c          = %u", &a.c );
+    printf ( "\n   Address of percentage = %u",&a.percentage );
+ 
+    printf("   \n\nsize of structure2 in bytes : %d\n", 
+                   sizeof(b));
+    printf ( "\n   Address of id1        = %u", &b.id1 );
+    printf ( "\n   Address of n       = %u", &b.n );
+    printf ( "\n   Address of id2        = %u", &b.id2 );
+    printf ( "\n   Address of c          = %u", &b.c );
+    printf ( "\n   Address of percentage = %u", &b.percentage );
+    
+    return 0;
+}
+
+Output:
+------
+size of structure1 in bytes : 14
+Address of id1 = 3438103088
+Address of id2 = 3438103092
+Address of name = 3438103096
+Address of c = 3438103097
+Address of percentage = 3438103098
+size of structure2 in bytes : 14
+Address of id1 = 3438103072
+Address of name = 3438103076
+Address of id2 = 3438103077
+Address of c = 3438103081
+Address of percentage = 3438103082
+
+
+
+
+
+
+
+
+
+
+
+            
+
+
+
+
